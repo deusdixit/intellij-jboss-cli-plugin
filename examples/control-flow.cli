@@ -1,0 +1,28 @@
+# Start an offline server, or connect before running these commands.
+embed-server --server-config=standalone.xml --std-out=echo
+
+if (outcome != success) of /system-property=cli-demo:read-resource
+    /system-property=cli-demo:add(value=created)
+else
+    /system-property=cli-demo:write-attribute(name=value,value=updated)
+end-if
+
+try
+    /system-property=cli-demo:read-resource
+catch
+    echo Could not read cli-demo
+finally
+    echo Finished checking cli-demo
+end-try
+
+for propertyName in /:read-children-names(child-type=system-property)
+    if (outcome == success) of /system-property=$propertyName:read-resource
+        echo Found $propertyName
+    end-if
+done
+
+batch
+    /system-property=cli-demo:write-attribute(name=value,value=batched)
+run-batch
+
+stop-embedded-server

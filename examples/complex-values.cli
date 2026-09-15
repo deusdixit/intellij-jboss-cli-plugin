@@ -1,0 +1,15 @@
+# Syntax examples: the example subsystem and operations are illustrative.
+set target=/subsystem=example
+$target:add( \
+    options={ \
+        enabled=true, \
+        handlers=[ \
+            {name="first",roles=[admin,user]}, \
+            {name="second",timeout=${timeout:30}} \
+        ] \
+    } \
+){allow-resource-service-restart=true;blocking-timeout=60}
+
+$target:write-attribute(name=properties,value={"mode" => "test","entries" => [("key" => "value")]})
+$target:write-attribute(name=data,value=bytes{0x01,0x02,0xff})
+$target:read-resource | grep outcome

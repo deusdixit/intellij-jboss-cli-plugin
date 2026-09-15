@@ -1,0 +1,117 @@
+{
+  parserClass="dev.jbosscli.parser.JBossCliParser"
+  parserUtilClass="dev.jbosscli.parser.JBossCliParserUtil"
+  extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
+  psiClassPrefix="JBossCli"
+  psiImplClassSuffix="Impl"
+  psiPackage="dev.jbosscli.psi"
+  psiImplPackage="dev.jbosscli.psi.impl"
+  elementTypeHolderClass="dev.jbosscli.psi.JBossCliTypes"
+  elementTypeClass="dev.jbosscli.psi.JBossCliElementType"
+  tokenTypeClass="dev.jbosscli.psi.JBossCliTokenType"
+  tokens=[
+    WHITE_SPACE='regexp:[ \t]+'
+    NEWLINE='regexp:\r\n|\r|\n'
+    COMMENT='regexp:#[^\r\n]*'
+    CONTINUATION='regexp:\\\r?\n'
+    WORD='regexp:[a-zA-Z_][a-zA-Z_0-9-]*'
+    NUMBER='regexp:[0-9]+'
+    STRING='regexp:"[^"\r\n]*"'
+    VARIABLE='regexp:\$[a-zA-Z_][a-zA-Z_0-9]*'
+    EXPRESSION='regexp:\$\{[^\r\n]*\}'
+    SUBSTITUTION='regexp:`[^`\r\n]*`'
+    IF='if' ELSE='else' END_IF='end-if' OF='of'
+    TRY='try' CATCH='catch' FINALLY='finally' END_TRY='end-try'
+    FOR='for' IN='in' DONE='done'
+    BATCH='batch' RUN_BATCH='run-batch' DISCARD_BATCH='discard-batch' HOLDBACK_BATCH='holdback-batch'
+    SET='set' UNSET='unset'
+    ROLLOUT='rollout' ROLLBACK_ACROSS_GROUPS='rollback-across-groups'
+    HEADERS_OPTION='--headers' BYTES='bytes' EXPRESSION_TYPE='expression'
+    TRUE='true' FALSE='false' UNDEFINED='undefined'
+    COLON=':' SLASH='/' EQ='=' ARROW='=>'
+    LPAREN='(' RPAREN=')' LBRACKET='[' RBRACKET=']' LBRACE='{' RBRACE='}'
+    COMMA=',' SEMICOLON=';' CARET='^' STAR='*' DOT='.' DOTDOT='..'
+    EQEQ='==' NE='!=' GE='>=' LE='<=' MATCH='~=' AND='&&' OR='||'
+    GT='>' LT='<' APPEND='>>' PIPE='|' BANG='!'
+  ]
+}
+
+cliFile ::= (NEWLINE | statement_line | misplaced_end | <<recoverLine>>)*
+private statement_line ::= statement (&(NEWLINE | <<eof>>) | <<recoverLine>>) {pin=1}
+private statement ::= help_command | if_block | try_block | for_block | batch_block | simple_statement
+private simple_statement ::= set_command | unset_command | pipeline
+
+// A body stops before a structural delimiter. Keywords remain legal in value/identifier positions.
+body ::= (NEWLINE | !block_end (statement_line | <<recoverLine>>))*
+private block_end ::= ELSE | END_IF | CATCH | FINALLY | END_TRY | DONE | RUN_BATCH | DISCARD_BATCH | HOLDBACK_BATCH
+if_block ::= IF condition OF pipeline NEWLINE body else_branch? END_IF command_argument* {pin=1}
+else_branch ::= ELSE NEWLINE body {pin=1}
+try_block ::= TRY NEWLINE body catch_branch? finally_branch? END_TRY command_argument* {pin=1}
+catch_branch ::= CATCH NEWLINE body {pin=1}
+finally_branch ::= FINALLY NEWLINE body {pin=1}
+for_block ::= FOR identifier IN pipeline NEWLINE body DONE command_argument* {pin=1}
+// --help and -l do not enter batch mode; --file and a held-back identifier do.
+batch_block ::= <<batchStart>> BATCH command_argument* NEWLINE body batch_end {pin=2}
+batch_end ::= (RUN_BATCH | DISCARD_BATCH | HOLDBACK_BATCH) command_argument*
+misplaced_end ::= block_end command_argument* (NEWLINE | <<eof>>) {pin=1}
+
+set_command ::= SET variable_assignment* {pin=1}
+help_command ::= <<helpCommand>> identifier command_argument*
+variable_assignment ::= identifier EQ value? {pin=2}
+unset_command ::= UNSET identifier* {pin=1}
+
+pipeline ::= invocation (PIPE command)* redirection?
+private invocation ::= operation | command
+redirection ::= (APPEND | GT) scalar {pin=1}
+operation ::= address? COLON operation_name argument_list? header_block? {pin=2}
+operation_name ::= identifier
+address ::= SLASH? address_segment (SLASH address_segment)* SLASH? | SLASH
+address_segment ::= identifier (EQ identifier)?
+argument_list ::= LPAREN (argument (COMMA argument)*)? RPAREN {pin=1}
+argument ::= BANG? identifier (EQ value)? {pin=2}
+
+command ::= !control_start command_name command_argument*
+private control_start ::= IF | TRY | FOR | SET | UNSET | block_end
+command_name ::= identifier
+command_argument ::= header_option | operation_option | named_argument | value
+header_option ::= HEADERS_OPTION EQ header_block {pin=2}
+operation_option ::= <<operationOption>> identifier EQ operation {pin=2}
+named_argument ::= identifier EQ value? {pin=2}
+
+// ModelNode accepts both native DMR and CLI composite values.
+private value ::= byte_literal | typed_expression | list_value | object_value | property_value | scalar
+list_value ::= LBRACKET (list_item (COMMA list_item)*)? RBRACKET {pin=1}
+private list_item ::= map_entry | value
+object_value ::= LBRACE (object_item (COMMA object_item)*)? RBRACE {pin=1}
+// Bare text inside braces is a documented CLI string form (e.g. {Hello World}).
+private object_item ::= map_entry | protected_text
+protected_text ::= value+
+map_entry ::= identifier (EQ | ARROW) value {pin=2}
+property_value ::= LPAREN identifier (ARROW | EQ) value RPAREN {pin=1}
+byte_literal ::= BYTES LBRACE (scalar (COMMA scalar)*)? RBRACE {pin=2}
+typed_expression ::= EXPRESSION_TYPE (STRING | EXPRESSION)
+
+header_block ::= LBRACE (header (SEMICOLON header)*)? RBRACE {pin=1}
+private header ::= rollout_header | header_entry
+header_entry ::= identifier (EQ value)?
+rollout_header ::= ROLLOUT (rollout_reference | rollout_groups) rollback_policy? {pin=1}
+rollout_reference ::= identifier EQ scalar
+rollout_groups ::= rollout_group ((COMMA | CARET) rollout_group)*
+rollout_group ::= identifier argument_list?
+rollback_policy ::= ROLLBACK_ACROSS_GROUPS (EQ (TRUE | FALSE))?
+
+condition ::= or_condition
+private or_condition ::= and_condition (OR and_condition)*
+private and_condition ::= comparison (AND comparison)*
+private comparison ::= condition_operand (comparison_operator condition_operand)?
+private condition_operand ::= LPAREN condition RPAREN | scalar
+private comparison_operator ::= EQEQ | NE | GE | LE | GT | LT | MATCH
+
+// Adjacency prevents space-separated command arguments from collapsing into one value.
+scalar ::= scalar_part (<<adjacent>> scalar_part)*
+private scalar_part ::= name_part | COLON | SLASH | EQ
+identifier ::= name_part (<<adjacent>> name_part)*
+private name_part ::= WORD | NUMBER | STRING | VARIABLE | EXPRESSION | SUBSTITUTION | STAR | DOT | DOTDOT | keyword
+private keyword ::= IF | ELSE | END_IF | OF | TRY | CATCH | FINALLY | END_TRY | FOR | IN | DONE
+                  | BATCH | RUN_BATCH | DISCARD_BATCH | HOLDBACK_BATCH | SET | UNSET
+                  | ROLLOUT | ROLLBACK_ACROSS_GROUPS | HEADERS_OPTION | BYTES | EXPRESSION_TYPE | TRUE | FALSE | UNDEFINED

@@ -1,0 +1,23 @@
+<idea-plugin>
+    <id>dev.jbosscli.language</id>
+    <name>JBoss / WildFly CLI</name>
+    <vendor>JBoss CLI Plugin Contributors</vendor>
+    <description><![CDATA[
+        Language support for JBoss EAP and WildFly management CLI scripts (*.cli).
+        Includes syntax highlighting, structured parsing, and indentation of control
+        flow, batches, and continued multiline requests.
+    ]]></description>
+    <depends>com.intellij.modules.platform</depends>
+    <extensions defaultExtensionNs="com.intellij">
+        <fileType name="JBoss CLI" language="JBossCli" extensions="cli"
+                  implementationClass="dev.jbosscli.JBossCliFileType" fieldName="INSTANCE"/>
+        <lang.parserDefinition language="JBossCli" implementationClass="dev.jbosscli.JBossCliParserDefinition"/>
+        <lang.syntaxHighlighterFactory language="JBossCli" implementationClass="dev.jbosscli.highlight.JBossCliSyntaxHighlighterFactory"/>
+        <annotator language="JBossCli" implementationClass="dev.jbosscli.highlight.JBossCliAnnotator"/>
+        <colorSettingsPage implementation="dev.jbosscli.highlight.JBossCliColorSettingsPage"/>
+        <lang.formatter language="JBossCli" implementationClass="dev.jbosscli.format.JBossCliFormattingModelBuilder"/>
+        <langCodeStyleSettingsProvider implementation="dev.jbosscli.format.JBossCliCodeStyleSettingsProvider"/>
+        <lang.commenter language="JBossCli" implementationClass="dev.jbosscli.JBossCliCommenter"/>
+        <lang.braceMatcher language="JBossCli" implementationClass="dev.jbosscli.JBossCliBraceMatcher"/>
+    </extensions>
+</idea-plugin>
