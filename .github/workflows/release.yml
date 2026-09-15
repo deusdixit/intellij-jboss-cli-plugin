@@ -1,0 +1,40 @@
+name: Build and Release Plugin
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch: # Diese Zeile fügt den manuellen "Run workflow" Button auf GitHub hinzu!
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'corretto'
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Build Plugin
+        # Baut das Plugin. Das Ergebnis landet automatisch in build/distributions/
+        run: ./gradlew buildPlugin
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/distributions/*.zip
+          # Erstellt automatisch einen schönen Changelog basierend auf deinen Commits
+          generate_release_notes: true
+          # Wenn manuell getriggert, wird der Name "Manual Build" genutzt
+          name: ${{ github.ref_type == 'tag' && github.ref_name || 'Manual Build' }}
+          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || 'manual-latest' }}
