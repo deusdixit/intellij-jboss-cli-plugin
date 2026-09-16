@@ -8,6 +8,21 @@ import java.nio.file.Files
 import java.nio.file.Path
 
 class JBossCliParsingTest : BasePlatformTestCase() {
+    fun testLoggingConfigurationWithSubstitutions() {
+        assertParses("""
+            set loggingProfile=${'$'}{prop_logging_profile}
+            set file=application.log
+            echo "Configuring ${'$'}loggingProfile in ${'$'}{app_log_directory}"
+            /subsystem=logging/logging-profile=${'$'}loggingProfile:add()
+            /subsystem=logging/logging-profile=${'$'}loggingProfile/logger=${'$'}logger:add(category=${'$'}logger,autoflush="true")
+            /subsystem=logging/logging-profile=${'$'}loggingProfile/periodic-size-rotating-file-handler=${'$'}file:add(file={path="${'$'}{app_log_directory}/${'$'}file"},append=true,autoflush=false)
+            unset file loggingProfile
+        """.trimIndent())
+        // Built-in commands remain valid identifiers and values in management operations.
+        assertParses("/system-property=echo:add(echo=echo,value=\"${'$'}{outer:${'$'}{inner:default}}\")")
+        assertParses("echo --help")
+    }
+
     fun testOperationAndValueCorpus() {
         val scripts = listOf(
             ":read-resource", "/:read-resource()", ":read-resource(recursive,!include-runtime)",

@@ -95,6 +95,7 @@ BARE = ([^\u0000-\u0020\\\"'`$#/:=()\[\]\{\},;\^*.!<>~&|]|{ESC})+
 "holdback-batch" { return HOLDBACK_BATCH; }
 "set" { return SET; }
 "unset" { return UNSET; }
+"echo" { return ECHO; }
 "rollout" { return ROLLOUT; }
 "rollback-across-groups" { return ROLLBACK_ACROSS_GROUPS; }
 "--headers" { return HEADERS_OPTION; }

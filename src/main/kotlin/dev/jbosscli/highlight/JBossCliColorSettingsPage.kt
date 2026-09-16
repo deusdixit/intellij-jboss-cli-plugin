@@ -28,6 +28,7 @@ class JBossCliColorSettingsPage : ColorSettingsPage {
     override fun getHighlighter() = JBossCliSyntaxHighlighter()
     override fun getAdditionalHighlightingTagToDescriptorMap() = mapOf(
         "path" to PATH_COLOR, "op" to OPERATION_COLOR, "param" to PARAMETER_COLOR, "cmd" to COMMAND_COLOR,
+        "var" to VARIABLE_COLOR,
     )
     override fun getAttributeDescriptors() = arrayOf(
         AttributesDescriptor("Keyword", KEYWORD_COLOR), AttributesDescriptor("Operation", OPERATION_COLOR),
@@ -47,10 +48,10 @@ class JBossCliColorSettingsPage : ColorSettingsPage {
         if (outcome != success) of ${'$'}target<op>:read-resource</op>
             ${'$'}target<op>:add</op>(<param>value</param>="hello")
         else
-            <cmd>echo</cmd> Already configured
+            <cmd>echo</cmd> "Configured <var>${'$'}target</var> in <var>${'$'}{app_log_directory}</var>"
         end-if
         batch
-            <path>/subsystem=undertow/server=default-server</path><op>:read-resource</op>(recursive=true)
+            <path>/subsystem=undertow/server=default-server</path><op>:read-resource</op>(<param>recursive</param>=true)
             <path>/system-property=demo</path><op>:write-attribute</op>(name=value,value=${'$'}{demo:default})
         run-batch
         <path>/subsystem=example</path><op>:add</op>(options=[{name="first",timeout=30}]) \

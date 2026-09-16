@@ -24,7 +24,7 @@
     TRY='try' CATCH='catch' FINALLY='finally' END_TRY='end-try'
     FOR='for' IN='in' DONE='done'
     BATCH='batch' RUN_BATCH='run-batch' DISCARD_BATCH='discard-batch' HOLDBACK_BATCH='holdback-batch'
-    SET='set' UNSET='unset'
+    SET='set' UNSET='unset' ECHO='echo'
     ROLLOUT='rollout' ROLLBACK_ACROSS_GROUPS='rollback-across-groups'
     HEADERS_OPTION='--headers' BYTES='bytes' EXPRESSION_TYPE='expression'
     TRUE='true' FALSE='false' UNDEFINED='undefined'
@@ -113,5 +113,5 @@ private scalar_part ::= name_part | COLON | SLASH | EQ
 identifier ::= name_part (<<adjacent>> name_part)*
 private name_part ::= WORD | NUMBER | STRING | VARIABLE | EXPRESSION | SUBSTITUTION | STAR | DOT | DOTDOT | keyword
 private keyword ::= IF | ELSE | END_IF | OF | TRY | CATCH | FINALLY | END_TRY | FOR | IN | DONE
-                  | BATCH | RUN_BATCH | DISCARD_BATCH | HOLDBACK_BATCH | SET | UNSET
+                  | BATCH | RUN_BATCH | DISCARD_BATCH | HOLDBACK_BATCH | SET | UNSET | ECHO
                   | ROLLOUT | ROLLBACK_ACROSS_GROUPS | HEADERS_OPTION | BYTES | EXPRESSION_TYPE | TRUE | FALSE | UNDEFINED

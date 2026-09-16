@@ -18,7 +18,7 @@ class JBossCliSyntaxHighlighter : SyntaxHighlighterBase() {
         NUMBER -> NUMBER_COLOR
         TRUE, FALSE, UNDEFINED -> CONSTANT_COLOR
         IF, ELSE, END_IF, OF, TRY, CATCH, FINALLY, END_TRY, FOR, IN, DONE,
-        BATCH, RUN_BATCH, DISCARD_BATCH, HOLDBACK_BATCH, SET, UNSET, ROLLOUT,
+        BATCH, RUN_BATCH, DISCARD_BATCH, HOLDBACK_BATCH, SET, UNSET, ECHO, ROLLOUT,
         ROLLBACK_ACROSS_GROUPS, BYTES, EXPRESSION_TYPE -> KEYWORD_COLOR
         LPAREN, RPAREN -> PARENTHESES_COLOR
         LBRACKET, RBRACKET -> BRACKETS_COLOR
@@ -34,9 +34,9 @@ class JBossCliSyntaxHighlighter : SyntaxHighlighterBase() {
         private fun key(name: String, fallback: TextAttributesKey) = TextAttributesKey.createTextAttributesKey("JBOSS_CLI.$name", fallback)
         @JvmField val KEYWORD_COLOR = key("KEYWORD", Colors.KEYWORD)
         @JvmField val OPERATION_COLOR = key("OPERATION", Colors.FUNCTION_CALL)
-        @JvmField val PATH_COLOR = key("PATH", Colors.CLASS_REFERENCE)
-        @JvmField val COMMAND_COLOR = key("COMMAND", Colors.FUNCTION_CALL)
-        @JvmField val PARAMETER_COLOR = key("PARAMETER", Colors.INSTANCE_FIELD)
+        @JvmField val PATH_COLOR = key("PATH", Colors.INSTANCE_FIELD)
+        @JvmField val COMMAND_COLOR = key("COMMAND", Colors.KEYWORD)
+        @JvmField val PARAMETER_COLOR = key("PARAMETER", Colors.PARAMETER)
         @JvmField val STRING_COLOR = key("STRING", Colors.STRING)
         @JvmField val VARIABLE_COLOR = key("VARIABLE", Colors.LOCAL_VARIABLE)
         @JvmField val NUMBER_COLOR = key("NUMBER", Colors.NUMBER)

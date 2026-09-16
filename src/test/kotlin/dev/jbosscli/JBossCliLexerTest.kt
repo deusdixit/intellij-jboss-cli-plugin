@@ -6,6 +6,14 @@ import dev.jbosscli.psi.JBossCliTypes.*
 import junit.framework.TestCase
 
 class JBossCliLexerTest : TestCase() {
+    fun testCommandsAndBooleanTokens() {
+        assertEquals(
+            listOf(ECHO, SET, UNSET, TRUE, FALSE, WORD, WORD),
+            tokens("echo set unset true false echo-handler falsehood")
+                .filter { it.first != TokenType.WHITE_SPACE }.map { it.first },
+        )
+    }
+
     fun testEscapingExpressionsAndComments() {
         val text = """
             # comment
